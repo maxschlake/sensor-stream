@@ -1,52 +1,22 @@
-# Minimum version of CMake required.
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.10)
+project(MyProject)
 
-# Set the project name.
-project("JavaInterface")
+# Specify the Android NDK
+set(CMAKE_SYSTEM_NAME Android)
+set(CMAKE_SYSTEM_VERSION 21)  # Adjust to your target API level
+set(CMAKE_ANDROID_ARCH_ABI "armeabi-v7a")  # Adjust as necessary
 
-# Add the native shared library.
-add_library(
-        # Sets the name of the library.
-        native-lib
+# Path to the Android NDK
+set(CMAKE_ANDROID_NDK "C:/Users/maxim/AppData/Local/Android/Sdk/ndk/26.1.10909125")
 
-        # Sets the library as a shared library.
-        SHARED
+# Set the sysroot path
+set(CMAKE_SYSROOT ${CMAKE_ANDROID_NDK}/platforms/android-${CMAKE_SYSTEM_VERSION}/arch-arm)
 
-        # Provides a relative path to your source file(s).
-        src/main/cpp/native-lib.cpp
-)
+# Include directories for NDK headers
+include_directories(${CMAKE_SYSROOT}/usr/include)
 
-# Find the Android NKD libraries.
-find_library(
-        # Searches for the log library (for logging).
-        log
-        log-lib
-)
+# Define the target executable or library
+add_executable(getAcc src/main/cpp/getAcc.cpp)
 
-find_library(
-        # Searches for the android library.
-        android
-        android-lib
-)
-
-find_library(
-        # Searches for the looper library (for sensor event loops).
-        looper
-        looper-lib
-)
-
-find_library(
-        # Searches for the sensor library (for accelerometer data).
-        sensor
-        sensor-lib
-)
-
-# Link the native libraries with the NDK libraries (log, android, looper, sensor)
-target_link_libraries(
-
-        native-lib # Specifies the target library.
-        ${log-lib} # Links the log library.
-        ${android-lib} # Links the android library.
-        ${looper-lib} # Links the looper library.
-        ${sensor-lib} # Links the sensor library.
-)
+# Link against system libraries
+target_link_libraries(getAcc PRIVATE log android)
