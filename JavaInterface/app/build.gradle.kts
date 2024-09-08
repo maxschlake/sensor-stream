@@ -24,6 +24,7 @@ android {
     externalNativeBuild {
         cmake {
             path = file("CMakeLists.txt")
+            version = "3.22.1"
         }
     }
 
@@ -36,6 +37,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -43,7 +45,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
