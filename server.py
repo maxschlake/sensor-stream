@@ -1,4 +1,16 @@
 import socket
+import time
+import os
+
+# Log data to a file with timestamped filenames
+def log_data(data):
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    filename = f"sensor_data_{timestamp}.log"
+
+    # Write the data to the log file
+    with open(filename, 'a') as file:
+        file.write(data + '\n') # Add newline for each log entry
+    print(f"Data logged to {filename}")
 
 # Define server IP address and password
 IP = '192.168.1.15'

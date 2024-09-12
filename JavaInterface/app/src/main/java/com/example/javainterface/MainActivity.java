@@ -12,6 +12,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Declare the native method to start the sensor
     public native void startSensor();
+    public native void stopSensor();
 
     // UI elements to display the accelerometer date
     private TextView xTextView, yTextView, zTextView;
@@ -39,14 +40,10 @@ public class MainActivity extends AppCompatActivity {
             zTextView.setText(String.format("Z: %.2f", z));
         });
     }
-}
-    /*
-        // Example of a call to a native method
-        TextView tv = findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
-    }
 
-        // Declare the native method
-        public native String stringFromJNI();
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopSensor();
     }
- */
+}
