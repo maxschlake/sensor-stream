@@ -22,7 +22,7 @@ static int sockfd; // Socket file descriptor
 void sendDataToServer(float x, float y, float z)
 {
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "X: %.2f, Y: %.2f, Z: %.2f\n", x, y, z);
+    snprintf(buffer, sizeof(buffer), "%.6f,%.6f,%.6f\n", x, y, z);
 
     // Send the data through the socket
     if (send(sockfd, buffer, strlen(buffer), 0) < 0)
