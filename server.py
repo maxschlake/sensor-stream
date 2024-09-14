@@ -12,35 +12,37 @@ os.makedirs(log_directory, exist_ok=True)
 # Log data to a file with timestamped filenames
 def log_data_to_csv(data, csv_file):
 
-    # Strip newline characters and any extra spaces
-    data = data.strip()
+    # Split the data by newline characters to handle multiple lines
+    lines = data.strip().split("\n")
 
-    # Split the data using commas and ensure there are exactly 3 values
-    values = data.split(",")
+    for line in lines:
+        # Strip any extra spaces and split the data using commas 
+        values = line.strip().split(",")
 
-    if len(values) == 3:
-        try:
-            xAcc, yAcc, zAcc = [float(value) for value in values]
+        # Ensure there are exactly 3 values before processing
+        if len(values) == 3:
+            try:
+                xAcc, yAcc, zAcc = [float(value) for value in values]
 
-            # Check if the file exists. If not, create and write headers
-            file_exists = os.path.isfile(csv_file)
+                # Check if the file exists. If not, create and write headers
+                file_exists = os.path.isfile(csv_file)
 
-            # Write the data to the log file
-            with open(csv_file, mode='a', newline='') as file:
-                writer = csv.writer(file)
+                # Write the data to the log file
+                with open(csv_file, mode='a', newline='') as file:
+                    writer = csv.writer(file)
 
-                # Write headers if the file is new
-                if not file_exists:
-                    writer.writerow(['xAcc', 'yAcc', 'zAcc']) # CSV column headers
+                    # Write headers if the file is new
+                    if not file_exists:
+                        writer.writerow(['xAcc', 'yAcc', 'zAcc']) # CSV column headers
 
-                # Write the sensor data to the CSV file
-                writer.writerow([xAcc, yAcc, zAcc])
+                    # Write the sensor data to the CSV file
+                    writer.writerow([xAcc, yAcc, zAcc])
 
-            print(f"Data logged to {csv_file}: {data}\n")
-        except ValueError as e:
-            print(f"Error converting data to float: {e}, Data: {data}")
-    else:
-        print(f"Unexpected data format: {data}")
+                print(f"Data logged to {csv_file}: {line}\n")
+            except ValueError as e:
+                print(f"Error converting data to float: {e}, Data: {line}")
+        else:
+            print(f"Unexpected data format: {line}")
 
 # Define server IP address and password
 IP = '192.168.1.15'
