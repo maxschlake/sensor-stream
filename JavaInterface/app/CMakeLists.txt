@@ -5,9 +5,9 @@ project("JavaInterface")
 
 # Add the native shared library.
 add_library(
-        getAcc
+        getSensorData
         SHARED
-        src/main/cpp/getAcc.cpp  # Your source file(s)
+        src/main/cpp/getSensorData.cpp  # Your source file(s)
 )
 
 # Find the NDK libraries you need.
@@ -23,7 +23,7 @@ find_library(
 
 # Link the native shared library with the NDK libraries.
 target_link_libraries(
-        getAcc
+        getSensorData
         ${log-lib}    # Links the log library
         ${android-lib}# Links the Android library
 )

@@ -6,9 +6,9 @@ import android.widget.TextView;
 import android.os.Handler;
 
 public class MainActivity extends AppCompatActivity {
-    // Used to load the 'getAcc' library on application startup
+    // Used to load the 'getSensorData' library on application startup
     static {
-        System.loadLibrary("getAcc");
+        System.loadLibrary("getSensorData");
     }
 
     // Native methods for the sensors
