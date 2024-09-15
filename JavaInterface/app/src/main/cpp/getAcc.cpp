@@ -13,16 +13,18 @@
 
 static ASensorManager* sensorManager;
 static const ASensor* accelerometer;
+static const ASensor* gyroscope;
+static const ASensor* magnetometer;
 static ASensorEventQueue* sensorEventQueue;
 static JavaVM* javaVM = nullptr;
 static jobject globalMainActivityObj = nullptr;
 static int sockfd; // Socket file descriptor
 
-// Function to send accelerometer data over the socket
-void sendDataToServer(float x, float y, float z)
+// Function to send data (tagged by sensor_type) over the socket
+void sendDataToServer(const char* sensorType, float x, float y, float z)
 {
     char buffer[128];
-    snprintf(buffer, sizeof(buffer), "%.6f,%.6f,%.6f\n", x, y, z);
+    snprintf(buffer, sizeof(buffer), "%s,%.6f,%.6f,%.6f\n", sensorType, x, y, z);
 
     // Send the data through the socket
     if (send(sockfd, buffer, strlen(buffer), 0) < 0)
@@ -41,7 +43,9 @@ static int get_sensor_data(int fd, int events, void* data)
 
     // Get the Java class and method to call
     jclass activityClass = env->GetObjectClass(globalMainActivityObj);
-    jmethodID updateSensorData = env->GetMethodID(activityClass, "updateSensorData", "(FFF)V");
+    jmethodID updateAccelerometerData = env->GetMethodID(activityClass, "updateAccelerometerData", "(FFF)V");
+    jmethodID updateGyroscopeData = env->GetMethodID(activityClass, "updateGyroscopeData", "(FFF)V");
+    jmethodID updateMagnetometerData = env->GetMethodID(activityClass, "updateMagnetometerData", "(FFF)V");
 
     // Loop through the sensor events and handle them
     while (ASensorEventQueue_getEvents(sensorEventQueue, &event, 1) > 0)
@@ -51,10 +55,30 @@ static int get_sensor_data(int fd, int events, void* data)
             LOGI("Acc: x = %f, y = %f, z = %f", event.acceleration.x, event.acceleration.y, event.acceleration.z);
 
             // Send data to the server
-            sendDataToServer(event.acceleration.x, event.acceleration.y, event.acceleration.z);
+            sendDataToServer("Acc", event.acceleration.x, event.acceleration.y, event.acceleration.z);
 
-            // Call the Java method to update the UI
-            env->CallVoidMethod(globalMainActivityObj, updateSensorData, event.acceleration.x, event.acceleration.y, event.acceleration.z);
+            // Call the Java method to update the accelerometer UI
+            env->CallVoidMethod(globalMainActivityObj, updateAccelerometerData, event.acceleration.x, event.acceleration.y, event.acceleration.z);
+        }
+        else if (event.type == ASENSOR_TYPE_GYROSCOPE)
+        {
+            LOGI("Gyro: x = %f, y = %f, z = %f", event.vector.x, event.vector.y, event.vector.z);
+
+            // Send data to the server
+            sendDataToServer("Gyro", event.vector.x, event.vector.y, event.vector.z);
+
+            // Call the Java method to update the gyroscope UI
+            env->CallVoidMethod(globalMainActivityObj, updateGyroscopeData, event.vector.x, event.vector.y, event.vector.z);
+        }
+        else if (event.type == ASENSOR_TYPE_MAGNETIC_FIELD)
+        {
+            LOGI("Mag: x = %f, y = %f, z = %f", event.magnetic.x, event.magnetic.y, event.magnetic.z);
+
+            // Send data to the server
+            sendDataToServer("Mag", event.magnetic.x, event.magnetic.y, event.magnetic.z);
+
+            // Call the Java method to update the magnetometer UI
+            env->CallVoidMethod(globalMainActivityObj, updateMagnetometerData, event.magnetic.x, event.magnetic.y, event.magnetic.z);
         }
     }
 
@@ -97,8 +121,10 @@ void setupSocket() {
     LOGI("Connected to server at %s:%d", SERVER_IP, SERVER_PORT);
 }
 
+
+// Native method to start accelerometer
 extern "C"
-JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startSensor(JNIEnv* env, jobject obj)
+JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startAccelerometer(JNIEnv* env, jobject obj)
 {
     // Store the Java VM and MainActivity reference globally for later use
     env->GetJavaVM(&javaVM);
@@ -109,27 +135,61 @@ JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startSensor(J
 
     // Get the sensor manager instance (with fallback for older devices)
     sensorManager = ASensorManager_getInstanceForPackage("");  // Updated to avoid deprecation warning
-    if (!sensorManager) {
+    if (!sensorManager)
+    {
         sensorManager = ASensorManager_getInstance();  // Fallback for older devices.
     }
 
-    // Get the default accelerometer sensor
+    // Get the accelerometer sensor
     accelerometer = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-
-    // Create the event queue for the accelerometer sensor
     sensorEventQueue = ASensorManager_createEventQueue(sensorManager, ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS), 0, get_sensor_data, nullptr);
+
     // Enable the accelerometer sensor and set the event rate to 50Hz (20ms intervals)
     ASensorEventQueue_enableSensor(sensorEventQueue, accelerometer);
-
-    // Set event rate to 50Hz (20 milliseconds = 20000 microseconds)
     ASensorEventQueue_setEventRate(sensorEventQueue, accelerometer, 20000);  // 50Hz
 }
 
-// Clean up function to close the socket when done
+// Native method to stop accelerometer
 extern "C"
-JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_stopSensor(JNIEnv* env, jobject obj)
+JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_stopAccelerometer(JNIEnv* env, jobject obj)
 {
     ASensorEventQueue_disableSensor(sensorEventQueue, accelerometer);
     close(sockfd); // Close the socket connection
     LOGI("Socket closed");
+}
+
+// Native method to start gyroscope
+extern "C"
+JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startGyroscope(JNIEnv* env, jobject obj)
+{
+    // Get the default gyroscope sensor
+    gyroscope = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_GYROSCOPE);
+    // Enable the accelerometer sensor and set the event rate to 50Hz (20ms intervals)
+    ASensorEventQueue_enableSensor(sensorEventQueue, gyroscope);
+    ASensorEventQueue_setEventRate(sensorEventQueue, gyroscope, 20000);  // 50Hz
+}
+
+// Native method to stop gyroscope
+extern "C"
+JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_stopGyroscope(JNIEnv* env, jobject obj)
+{
+    ASensorEventQueue_disableSensor(sensorEventQueue, gyroscope);
+}
+
+// Native method to start magnetometer
+extern "C"
+JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startMagnetometer(JNIEnv* env, jobject obj)
+{
+    // Get the default gyroscope sensor
+    magnetometer = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_MAGNETIC_FIELD);
+    // Enable the accelerometer sensor and set the event rate to 50Hz (20ms intervals)
+    ASensorEventQueue_enableSensor(sensorEventQueue, magnetometer);
+    ASensorEventQueue_setEventRate(sensorEventQueue, magnetometer, 20000);  // 50Hz
+}
+
+// Native method to stop magnetometer
+extern "C"
+JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_stopMagnetometer(JNIEnv* env, jobject obj)
+{
+    ASensorEventQueue_disableSensor(sensorEventQueue, magnetometer);
 }

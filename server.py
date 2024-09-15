@@ -9,8 +9,14 @@ log_directory = 'raw'
 # Ensure the log directory exists
 os.makedirs(log_directory, exist_ok=True)
 
-# Log data to a file with timestamped filenames
-def log_data_to_csv(data, csv_file):
+# Create different log files for each sensor
+timestamp = time.strftime('%Y%m%d-%H%M%S')
+acc_log_file = os.path.join(log_directory, f"acc_{timestamp}.csv")
+gyro_log_file = os.path.join(log_directory, f"gyro_{timestamp}.csv")
+mag_log_file = os.path.join(log_directory, f"mag_{timestamp}.csv")
+
+# Log data to a CSV file based on sensor type
+def log_data_to_csv(data):
 
     # Split the data by newline characters to handle multiple lines
     lines = data.strip().split("\n")
@@ -19,10 +25,19 @@ def log_data_to_csv(data, csv_file):
         # Strip any extra spaces and split the data using commas 
         values = line.strip().split(",")
 
-        # Ensure there are exactly 3 values before processing
-        if len(values) == 3:
+        # Ensure the data format and sensor type matches
+        if len(values) == 4 and values[0] in ["Acc", "Gyro", "Mag"]:
             try:
-                xAcc, yAcc, zAcc = [float(value) for value in values]
+                sensor_type, x, y, z = values
+                x, y, z = float(x), float(y), float(z)
+
+                # Determine the right log file
+                if sensor_type == "Acc":
+                    csv_file = acc_log_file
+                elif sensor_type == "Gyro":
+                    csv_file = gyro_log_file
+                else: # if sensor_type == "Mag"
+                    csv_file = mag_log_file
 
                 # Check if the file exists. If not, create and write headers
                 file_exists = os.path.isfile(csv_file)
@@ -33,16 +48,16 @@ def log_data_to_csv(data, csv_file):
 
                     # Write headers if the file is new
                     if not file_exists:
-                        writer.writerow(['xAcc', 'yAcc', 'zAcc']) # CSV column headers
+                        writer.writerow([f'x{sensor_type}', f'y{sensor_type}', f'z{sensor_type}']) # CSV column headers
 
                     # Write the sensor data to the CSV file
-                    writer.writerow([xAcc, yAcc, zAcc])
+                    writer.writerow([x, y, z])
 
                 print(f"Data logged to {csv_file}: {line}\n")
             except ValueError as e:
                 print(f"Error converting data to float: {e}, Data: {line}")
         else:
-            print(f"Unexpected data format: {line}")
+            print(f"Unexpected data format or unrecognized sensor_type: {line}")
 
 # Define server IP address and password
 IP = '192.168.1.15'
@@ -53,17 +68,6 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((IP, 8080)) # Bind to all interfaces and port 8080
 server_socket.listen(1)
 print("Waiting for connection...")
-
-# Log file settings
-log_file_name = f"sensor_data_{time.strftime('%Y%m%d-%H%M%S')}.csv"
-log_file = os.path.join(log_directory, log_file_name) 
-
-
-# Function to rotate log files every 10 seconds
-def rotate_log_file():
-    global log_file
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    log_file = f"sensor_data_{timestamp}.log" # New log file for the next session
 
 # Wait for connection
 connection, client_address = server_socket.accept()
@@ -82,8 +86,8 @@ try:
                 break
             print(f"Received: {data.decode()}")
 
-            # Log the data to the file
-            log_data_to_csv(data.decode(), log_file)
+            # Log data
+            log_data_to_csv(data.decode())
 
 finally:
     connection.close()

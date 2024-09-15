@@ -11,12 +11,20 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("getAcc");
     }
 
-    // Declare the native method to start the sensor
-    public native void startSensor();
-    public native void stopSensor();
+    // Native methods for the sensors
+    public native void startAccelerometer(); // For accelerometer
+    public native void stopAccelerometer();
 
-    // UI elements to display the accelerometer date
-    private TextView xTextView, yTextView, zTextView;
+    public native void startGyroscope(); // For gyroscope
+    public native void stopGyroscope();
+
+    public native void startMagnetometer(); // For magnetometer
+    public native void stopMagnetometer();
+
+    // UI elements to display the sensor data
+    private TextView xAccTextView, yAccTextView, zAccTextView;
+    private TextView xGyroTextView, yGyroTextView, zGyroTextView;
+    private TextView xMagTextView, yMagTextView, zMagTextView;
 
     // Declare a handler to stop the sensor after a fixed period
     private Handler handler = new Handler();
@@ -26,31 +34,66 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize TextViews
-        xTextView = findViewById(R.id.x_value);
-        yTextView = findViewById(R.id.y_value);
-        zTextView = findViewById(R.id.z_value);
+        // Initialize accelerometer TextViews
+        xAccTextView = findViewById(R.id.x_acc_value);
+        yAccTextView = findViewById(R.id.y_acc_value);
+        zAccTextView = findViewById(R.id.z_acc_value);
 
-        // Start the sensor from the native side
-        startSensor();
+        // Initialize gyroscope TextViews
+        xGyroTextView = findViewById(R.id.x_gyro_value);
+        yGyroTextView = findViewById(R.id.y_gyro_value);
+        zGyroTextView = findViewById(R.id.z_gyro_value);
 
-        // Stop the sensor after 10 seconds (10000 milliseconds)
-        handler.postDelayed(() -> stopSensor(), 10000);
+        // Initialize magnetometer TextViews
+        xMagTextView = findViewById(R.id.x_mag_value);
+        yMagTextView = findViewById(R.id.y_mag_value);
+        zMagTextView = findViewById(R.id.z_mag_value);
+
+        // Start the sensors from the native side
+        startAccelerometer();
+        startGyroscope();
+        startMagnetometer();
+
+        // Stop the sensors after 10 seconds (10000 milliseconds)
+        handler.postDelayed(() -> {
+            stopAccelerometer();
+            stopGyroscope();
+            stopMagnetometer();
+        }, 10000);
     }
 
-    // This method will be called from native code to update the sensor data
-    public void updateSensorData(float x, float y, float z) {
-        // Update the TextViews with new accelerometer values
+    // Method to update the accelerometer data
+    public void updateAccelerometerData(float x, float y, float z) {
         runOnUiThread(() -> {
-            xTextView.setText(String.format("xAcc: %.6f", x));
-            yTextView.setText(String.format("yAcc: %.6f", y));
-            zTextView.setText(String.format("zAcc: %.6f", z));
+            xAccTextView.setText(String.format("xAcc: %.6f", x));
+            yAccTextView.setText(String.format("yAcc: %.6f", y));
+            zAccTextView.setText(String.format("zAcc: %.6f", z));
+        });
+    }
+
+    // Method to update the gyroscope data
+    public void updateGyroscopeData(float x, float y, float z) {
+        runOnUiThread(() -> {
+            xGyroTextView.setText(String.format("xGyro: %.6f", x));
+            yGyroTextView.setText(String.format("yGyro: %.6f", y));
+            zGyroTextView.setText(String.format("zGyro: %.6f", z));
+        });
+    }
+
+    // Method to update the gyroscope data
+    public void updateMagnetometerData(float x, float y, float z) {
+        runOnUiThread(() -> {
+            xMagTextView.setText(String.format("xMag: %.6f", x));
+            yMagTextView.setText(String.format("yMag: %.6f", y));
+            zMagTextView.setText(String.format("zMag: %.6f", z));
         });
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopSensor();
+        stopAccelerometer();
+        stopGyroscope();
+        stopMagnetometer();
     }
 }
