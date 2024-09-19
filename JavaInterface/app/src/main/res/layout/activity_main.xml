@@ -93,5 +93,11 @@
         android:layout_height="wrap_content"
         android:text="zMag: "
         android:textSize="18sp" />
+    
+    <Button
+        android:id="@+id/sendToServerButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SEND TO SERVER"/>
 
 </LinearLayout>

@@ -2,6 +2,7 @@ import csv
 import socket
 import time
 import os
+import getpass
 
 # Directory for storing the CSV files
 log_directory = 'raw'
@@ -61,7 +62,7 @@ def log_data_to_csv(data):
 
 # Define server IP address and session password
 IP = "192.168.1.15"
-PW = input("Please create a password for the session: ")
+PW = getpass.getpass("Please create a password for the session: ")
 
 def start_server():
     # Create a TCP/IP socket 
@@ -79,7 +80,7 @@ def start_server():
             try:
                 # Receive and check the password
                 received_password = connection.recv(1024).decode()
-                print(f"Received password: '{received_password}'")  # Debugging statement
+                print(f"Received password.")
 
                 if received_password != PW:
                     print("Unauthorized access attempt.")
@@ -88,14 +89,29 @@ def start_server():
                 else:
                     print("Authorized access. Ready to receive data.")
                     connection.sendall(b"AUTHORIZED")
+
+                    buffer = ""  # Buffer to accumulate data chunks
+
                     while True:
                         data = connection.recv(1024)
                         if not data:
                             break
-                        print(f"Received data: {data.decode()}")
 
-                        # Log data
-                        log_data_to_csv(data.decode())
+                        # Accumulate received data in the buffer
+                        buffer += data.decode()
+
+                        # Check if we have a complete message (terminated by a newline)
+                        if '\n' in buffer:
+                            # Split the buffer at newline
+                            lines = buffer.split("\n")
+
+                            # Process all complete lines
+                            for line in lines[:-1]:
+                                print(f"Received data: {line}")
+                                # Log data
+                                log_data_to_csv(line)
+                            
+                            buffer = lines[-1]
 
             finally:
                 connection.close()  # Always close the client connection

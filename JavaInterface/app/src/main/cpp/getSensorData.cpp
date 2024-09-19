@@ -3,9 +3,12 @@
 #include <android/looper.h>
 #include <jni.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
+#include <cerrno>
+#include <fcntl.h>
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "sensor-native", __VA_ARGS__))
 #define SERVER_IP "192.168.1.15"
@@ -20,7 +23,8 @@ static JavaVM* javaVM = nullptr;
 static jobject globalMainActivityObj = nullptr;
 static int sockfd; // Socket file descriptor
 
-// Function to send data (tagged by sensor_type) over the socket
+
+
 void sendDataToServer(const char* sensorType, float x, float y, float z)
 {
     if (sockfd < 0)
@@ -63,6 +67,16 @@ void displaySensorDataLocally(JNIEnv* env, const char* sensorType, float x, floa
     }
 }
 
+// Global flag to indicate if the server is ready
+static bool startSending = false;
+
+// Native method to set the server readiness
+extern "C"
+JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startSending(JNIEnv* env, jobject obj, jboolean validated)
+{
+    startSending = validated; // Update the global isServerReady flag
+}
+
 static int get_sensor_data(int fd, int events, void* data)
 {
     ASensorEvent event;
@@ -78,6 +92,12 @@ static int get_sensor_data(int fd, int events, void* data)
 
             // Display data on UI
             displaySensorDataLocally(env, "Acc", event.acceleration.x, event.acceleration.y, event.acceleration.z);
+
+            // Send in case the server is ready
+            if (startSending)
+            {
+                sendDataToServer("Acc", event.acceleration.x, event.acceleration.y, event.acceleration.z);
+            }
         }
         else if (event.type == ASENSOR_TYPE_GYROSCOPE)
         {
@@ -85,6 +105,12 @@ static int get_sensor_data(int fd, int events, void* data)
 
             // Display data on UI
             displaySensorDataLocally(env, "Gyro", event.vector.x, event.vector.y, event.vector.z);
+
+            // Send in case the server is ready
+            if (startSending)
+            {
+                sendDataToServer("Gyro", event.acceleration.x, event.acceleration.y, event.acceleration.z);
+            }
         }
         else if (event.type == ASENSOR_TYPE_MAGNETIC_FIELD)
         {
@@ -92,6 +118,12 @@ static int get_sensor_data(int fd, int events, void* data)
 
             // Display data on UI
             displaySensorDataLocally(env, "Mag", event.magnetic.x, event.magnetic.y, event.magnetic.z);
+
+            // Send in case the server is ready
+            if (startSending)
+            {
+                sendDataToServer("Mag", event.acceleration.x, event.acceleration.y, event.acceleration.z);
+            }
         }
     }
 
@@ -106,76 +138,6 @@ void closeSocket()
         close(sockfd); // Invalidate socket
         sockfd = -1;
         LOGI("Socket closed");
-    }
-}
-
-// Function to set up the socket connection to the server
-void setupSocket(const char* password)
-{
-    struct sockaddr_in server_addr;
-
-    // Create the socket
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        LOGI("Failed to create socket");
-        return;
-    }
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(SERVER_PORT);
-    inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr);
-
-    // Connect to the server
-    if (connect(sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0)
-    {
-        LOGI("Failed to connect to server");
-        closeSocket();
-        return;
-    }
-
-    // Send the password to the server
-    if (send(sockfd, password, strlen(password), 0) < 0)
-    {
-        LOGI("Failed to send password");
-        closeSocket();
-        return;
-    }
-
-    // Flush the socket buffer
-    fsync(sockfd);
-
-    LOGI("Connected to server at %s:%d", SERVER_IP, SERVER_PORT);
-}
-
-// Function to check if the server is available
-extern "C"
-JNIEXPORT jboolean JNICALL Java_com_example_javainterface_MainActivity_connectToServer(JNIEnv* env, jobject obj)
-{
-    struct sockaddr_in server_addr;
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-    if (sockfd < 0)
-    {
-        LOGI("Failed to create socket");
-        return JNI_FALSE;
-    }
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(SERVER_PORT);
-    inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr);
-
-    // Try to connect to the server
-    if (connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) == 0)
-    {
-        LOGI("Server is available");
-        closeSocket(); // Close the socket immediately after checking
-        return JNI_TRUE; // Server is ready
-    }
-    else
-    {
-        LOGI("Failed to connect to server");
-        closeSocket(); // Close the socket if connection failed
-        return JNI_FALSE; // Server is not ready
     }
 }
 
@@ -204,7 +166,7 @@ Java_com_example_javainterface_MainActivity_connectToServerAndValidatePassword(J
     if (connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
     {
         LOGI("Failed to connect to the server");
-        closeSocket();
+        close(sockfd);
         return JNI_FALSE;
     }
     LOGI("Connected to the server at %s:%d", SERVER_IP, SERVER_PORT);
@@ -213,10 +175,9 @@ Java_com_example_javainterface_MainActivity_connectToServerAndValidatePassword(J
     if (send(sockfd, password, strlen(password), 0) < 0)
     {
         LOGI("Failed to send password");
-        closeSocket();
+        close(sockfd);
         return JNI_FALSE;
     }
-
     LOGI("Password sent to server. Waiting for validation...");
 
     // Receive the server's response
@@ -225,7 +186,7 @@ Java_com_example_javainterface_MainActivity_connectToServerAndValidatePassword(J
     if (bytes_received < 0)
     {
         LOGI("Failed to receive response");
-        closeSocket();
+        close(sockfd);
         return JNI_FALSE;
     }
 
@@ -240,8 +201,28 @@ Java_com_example_javainterface_MainActivity_connectToServerAndValidatePassword(J
     else
     {
         LOGI("Invalid password, server rejected");
-        closeSocket();
+        close(sockfd);
         return JNI_FALSE;
+    }
+}
+
+// Global initialization function for the sensor manager
+void initializeSensorManager(JNIEnv* env, jobject obj)
+{
+    // Only initialize once
+    if (javaVM == nullptr)
+    {
+        // Store the Java VM and MainActivity reference globally for later use
+        env->GetJavaVM(&javaVM);
+        globalMainActivityObj = env->NewGlobalRef(obj);
+
+        // Get the sensor manager instance (with fallback for older devices)
+        sensorManager = ASensorManager_getInstanceForPackage("");  // Updated to avoid deprecation warning
+        if (!sensorManager)
+        {
+            sensorManager = ASensorManager_getInstance();  // Fallback for older devices.
+        }
+        sensorEventQueue = ASensorManager_createEventQueue(sensorManager, ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS), 0, get_sensor_data, nullptr);
     }
 }
 
@@ -249,20 +230,11 @@ Java_com_example_javainterface_MainActivity_connectToServerAndValidatePassword(J
 extern "C"
 JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startAccelerometer(JNIEnv* env, jobject obj)
 {
-    // Store the Java VM and MainActivity reference globally for later use
-    env->GetJavaVM(&javaVM);
-    globalMainActivityObj = env->NewGlobalRef(obj);
+    // Initialize common resources if not already initialized
+    initializeSensorManager(env, obj);
 
-    // Get the sensor manager instance (with fallback for older devices)
-    sensorManager = ASensorManager_getInstanceForPackage("");  // Updated to avoid deprecation warning
-    if (!sensorManager)
-    {
-        sensorManager = ASensorManager_getInstance();  // Fallback for older devices.
-    }
-
-    // Get the accelerometer sensor
+    // Get the default accelerometer sensor
     accelerometer = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-    sensorEventQueue = ASensorManager_createEventQueue(sensorManager, ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS), 0, get_sensor_data, nullptr);
 
     // Enable the accelerometer sensor and set the event rate to 50Hz (20ms intervals)
     ASensorEventQueue_enableSensor(sensorEventQueue, accelerometer);
@@ -284,6 +256,9 @@ JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_stopAccelerom
 extern "C"
 JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startGyroscope(JNIEnv* env, jobject obj)
 {
+    // Initialize common resources if not already initialized
+    initializeSensorManager(env, obj);
+
     // Get the default gyroscope sensor
     gyroscope = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_GYROSCOPE);
     // Enable the accelerometer sensor and set the event rate to 50Hz (20ms intervals)
@@ -306,6 +281,9 @@ JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_stopGyroscope
 extern "C"
 JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startMagnetometer(JNIEnv* env, jobject obj)
 {
+    // Initialize common resources if not already initialized
+    initializeSensorManager(env, obj);
+
     // Get the default gyroscope sensor
     magnetometer = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_MAGNETIC_FIELD);
     // Enable the accelerometer sensor and set the event rate to 50Hz (20ms intervals)
