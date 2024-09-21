@@ -195,9 +195,9 @@ public class MainActivity extends AppCompatActivity {
     {
         runOnUiThread(() ->
         {
-            xAccTextView.setText(String.format("xAcc: %.6f", x));
-            yAccTextView.setText(String.format("yAcc: %.6f", y));
-            zAccTextView.setText(String.format("zAcc: %.6f", z));
+            xAccTextView.setText(String.format("%.6f", x));
+            yAccTextView.setText(String.format("%.6f", y));
+            zAccTextView.setText(String.format("%.6f", z));
         });
     }
 
@@ -206,9 +206,9 @@ public class MainActivity extends AppCompatActivity {
     {
         runOnUiThread(() ->
         {
-            xGyroTextView.setText(String.format("xGyro: %.6f", x));
-            yGyroTextView.setText(String.format("yGyro: %.6f", y));
-            zGyroTextView.setText(String.format("zGyro: %.6f", z));
+            xGyroTextView.setText(String.format("%.6f", x));
+            yGyroTextView.setText(String.format("%.6f", y));
+            zGyroTextView.setText(String.format("%.6f", z));
         });
     }
 
@@ -217,9 +217,9 @@ public class MainActivity extends AppCompatActivity {
     {
             runOnUiThread(() ->
             {
-                xMagTextView.setText(String.format("xMag: %.6f", x));
-                yMagTextView.setText(String.format("yMag: %.6f", y));
-                zMagTextView.setText(String.format("zMag: %.6f", z));
+                xMagTextView.setText(String.format("%.6f", x));
+                yMagTextView.setText(String.format("%.6f", y));
+                zMagTextView.setText(String.format("%.6f", z));
             });
     }
 

@@ -5,34 +5,92 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Logo -->
+    <ImageView
+        android:id="@+id/app_logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:src="@drawable/app_logo"
+        android:contentDescription="App Logo"
+        android:layout_marginTop="-120dp"
+        android:layout_marginBottom="-130dp"/>
+
+
     <!-- Accelerometer section -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Accelerometer"
         android:textStyle="bold"
-        android:textSize="20sp" />
-    
-    <TextView
-        android:id="@+id/x_acc_value"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="xAcc: "
-        android:textSize="18sp" />
+        android:textSize="20sp"
+        android:layout_marginTop="16dp" />
 
-    <TextView
-        android:id="@+id/y_acc_value"
-        android:layout_width="wrap_content"
+    <!-- Create a row for xAcc -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="yAcc: "
-        android:textSize="18sp" />
+        android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/z_acc_value"
-        android:layout_width="wrap_content"
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="xAcc: "
+            android:textSize="18sp"
+            android:gravity="start" />
+
+        <TextView
+            android:id="@+id/x_acc_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.000000"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <!-- Create a row for yAcc -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="zAcc: "
-        android:textSize="18sp" />
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="yAcc: "
+            android:textSize="18sp"
+            android:gravity="start" />
+
+        <TextView
+            android:id="@+id/y_acc_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.000000"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <!-- Create a row for zAcc -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="zAcc: "
+            android:textSize="18sp"
+            android:gravity="start" />
+
+        <TextView
+            android:id="@+id/z_acc_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.000000"
+            android:textSize="18sp" />
+    </LinearLayout>
 
     <!-- Gyroscope section -->
     <TextView
@@ -43,26 +101,71 @@
         android:textSize="20sp"
         android:layout_marginTop="16dp" />
 
-    <TextView
-        android:id="@+id/x_gyro_value"
-        android:layout_width="wrap_content"
+    <!-- Create a row for xGyro -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="xGyro: "
-        android:textSize="18sp" />
+        android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/y_gyro_value"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="yGyro: "
-        android:textSize="18sp" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="xGyro: "
+            android:textSize="18sp"
+            android:gravity="start" />
 
-    <TextView
-        android:id="@+id/z_gyro_value"
-        android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/x_gyro_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.000000"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <!-- Create a row for yGyro -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="zGyro: "
-        android:textSize="18sp" />
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="yGyro: "
+            android:textSize="18sp"
+            android:gravity="start" />
+
+        <TextView
+            android:id="@+id/y_gyro_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.000000"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <!-- Create a row for zGyro -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="zGyro: "
+            android:textSize="18sp"
+            android:gravity="start" />
+
+        <TextView
+            android:id="@+id/z_gyro_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.000000"
+            android:textSize="18sp" />
+    </LinearLayout>
 
     <!-- Magnetometer section -->
     <TextView
@@ -73,33 +176,80 @@
         android:textSize="20sp"
         android:layout_marginTop="16dp" />
 
-    <TextView
-        android:id="@+id/x_mag_value"
-        android:layout_width="wrap_content"
+    <!-- Create a row for xMag -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="xMag: "
-        android:textSize="18sp" />
+        android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/y_mag_value"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="yMag: "
-        android:textSize="18sp" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="xMag: "
+            android:textSize="18sp"
+            android:gravity="start" />
 
-    <TextView
-        android:id="@+id/z_mag_value"
-        android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/x_mag_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.000000"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <!-- Create a row for yMag -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="zMag: "
-        android:textSize="18sp" />
-    
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="yMag: "
+            android:textSize="18sp"
+            android:gravity="start" />
+
+        <TextView
+            android:id="@+id/y_mag_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.000000"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <!-- Create a row for zMag -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="zMag: "
+            android:textSize="18sp"
+            android:gravity="start" />
+
+        <TextView
+            android:id="@+id/z_mag_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.000000"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <!-- SEND TO SERVER button -->
     <Button
         android:id="@+id/sendToServerButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="SEND TO SERVER"
-        android:layout_marginTop="180dp"
-        android:layout_marginLeft="113dp" />
-
+        android:layout_gravity="center"
+        android:minHeight="48dp"
+        android:minWidth="200dp"
+        android:layout_marginTop="40dp" />
 </LinearLayout>
