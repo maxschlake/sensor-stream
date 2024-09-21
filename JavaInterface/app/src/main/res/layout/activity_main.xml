@@ -100,6 +100,6 @@
         android:layout_height="wrap_content"
         android:text="SEND TO SERVER"
         android:layout_marginTop="180dp"
-        android:layout_marginLeft="116dp" />
+        android:layout_marginLeft="113dp" />
 
 </LinearLayout>

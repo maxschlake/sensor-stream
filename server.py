@@ -3,6 +3,7 @@ import socket
 import time
 import os
 import getpass
+import argparse
 
 # Directory for storing the CSV files
 log_directory = 'raw'
@@ -60,14 +61,21 @@ def log_data_to_csv(data):
         else:
             print(f"Unexpected data format or unrecognized sensor_type: {line}")
 
-# Define server IP address and session password
-IP = "192.168.1.15"
+# Set up command line argument parsing
+parser = argparse.ArgumentParser(description="Sensor Stream Server")
+parser.add_argument('--ip', type=str, default=socket.gethostbyname(socket.gethostname()),
+                    help='IP address to listen on (default: local IPv4 address)')
+parser.add_argument('--port', type=int, default=8080, help='Port number to listen on (default: 8080)')
+args = parser.parse_args()
+
+IP = args.ip
+PORT = args.port
 PW = getpass.getpass("Please create a password for the session: ")
 
 def start_server():
     # Create a TCP/IP socket 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((IP, 8080)) # Bind to all interfaces and port 8080
+    server_socket.bind((IP, PORT)) # Bind to all interfaces and port 8080
     server_socket.listen(1)
     print("Waiting for connection...")
 
@@ -86,6 +94,7 @@ def start_server():
                     print("Unauthorized access attempt.")
                     connection.sendall(b"UNAUTHORIZED")
                     connection.close()  # Close only the client connection
+                    break
                 else:
                     print("Authorized access. Ready to receive data.")
                     connection.sendall(b"AUTHORIZED")
@@ -101,7 +110,7 @@ def start_server():
                         buffer += data.decode()
 
                         # Check if we have a complete message (terminated by a newline)
-                        if '\n' in buffer:
+                        while '\n' in buffer:
                             # Split the buffer at newline
                             lines = buffer.split("\n")
 
@@ -115,11 +124,13 @@ def start_server():
 
             finally:
                 connection.close()  # Always close the client connection
+            
+            print("Processing complete.")
+            break
 
     except Exception as e:
         print(f"Error: {e}")
     finally:
-        # Close the server socket only when you want to stop the server
         server_socket.close()
 
 if __name__ == "__main__":
