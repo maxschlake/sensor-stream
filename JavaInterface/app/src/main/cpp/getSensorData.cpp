@@ -23,28 +23,6 @@ static JavaVM* javaVM = nullptr;
 static jobject globalMainActivityObj = nullptr;
 static int sockfd; // Socket file descriptor
 
-
-
-void sendDataToServer(const char* sensorType, float x, float y, float z)
-{
-    if (sockfd < 0)
-    {
-        LOGI("Socket not open; skipping data transmission");
-        return;
-    }
-
-    char buffer[128];
-    snprintf(buffer, sizeof(buffer), "%s,%.6f,%.6f,%.6f\n", sensorType, x, y, z);
-
-    // Send the data through the socket
-    if (send(sockfd, buffer, strlen(buffer), 0) < 0)
-    {
-        LOGI("Failed to send data to server");
-    }
-    else
-        LOGI("Data sent to server: %s", buffer);
-}
-
 // Function to collect and display sensor data without needing the socket
 void displaySensorDataLocally(JNIEnv* env, const char* sensorType, float x, float y, float z)
 {
@@ -67,6 +45,27 @@ void displaySensorDataLocally(JNIEnv* env, const char* sensorType, float x, floa
     }
 }
 
+// Function to send data to the server once the password is validated
+void sendSensorDataToServer(const char* sensorType, float x, float y, float z)
+{
+    if (sockfd < 0)
+    {
+        LOGI("Socket not open; skipping data transmission");
+        return;
+    }
+
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "%s,%.6f,%.6f,%.6f\n", sensorType, x, y, z);
+
+    // Send the data through the socket
+    if (send(sockfd, buffer, strlen(buffer), 0) < 0)
+    {
+        LOGI("Failed to send data to server");
+    }
+    else
+        LOGI("Data sent to server: %s", buffer);
+}
+
 // Global flag to indicate if the server is ready
 static bool startSending = false;
 
@@ -77,7 +76,7 @@ JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startSending(
     startSending = validated; // Update the global isServerReady flag
 }
 
-static int get_sensor_data(int fd, int events, void* data)
+static int handleSensorEvents(int fd, int events, void* data)
 {
     ASensorEvent event;
     JNIEnv* env;
@@ -93,10 +92,10 @@ static int get_sensor_data(int fd, int events, void* data)
             // Display data on UI
             displaySensorDataLocally(env, "Acc", event.acceleration.x, event.acceleration.y, event.acceleration.z);
 
-            // Send in case the server is ready
+            // Send in case the password is validated
             if (startSending)
             {
-                sendDataToServer("Acc", event.acceleration.x, event.acceleration.y, event.acceleration.z);
+                sendSensorDataToServer("Acc", event.acceleration.x, event.acceleration.y, event.acceleration.z);
             }
         }
         else if (event.type == ASENSOR_TYPE_GYROSCOPE)
@@ -106,10 +105,10 @@ static int get_sensor_data(int fd, int events, void* data)
             // Display data on UI
             displaySensorDataLocally(env, "Gyro", event.vector.x, event.vector.y, event.vector.z);
 
-            // Send in case the server is ready
+            // Send in case the password is validated
             if (startSending)
             {
-                sendDataToServer("Gyro", event.acceleration.x, event.acceleration.y, event.acceleration.z);
+                sendSensorDataToServer("Gyro", event.acceleration.x, event.acceleration.y, event.acceleration.z);
             }
         }
         else if (event.type == ASENSOR_TYPE_MAGNETIC_FIELD)
@@ -119,26 +118,15 @@ static int get_sensor_data(int fd, int events, void* data)
             // Display data on UI
             displaySensorDataLocally(env, "Mag", event.magnetic.x, event.magnetic.y, event.magnetic.z);
 
-            // Send in case the server is ready
+            // Send in case the password is validated
             if (startSending)
             {
-                sendDataToServer("Mag", event.acceleration.x, event.acceleration.y, event.acceleration.z);
+                sendSensorDataToServer("Mag", event.acceleration.x, event.acceleration.y, event.acceleration.z);
             }
         }
     }
 
     return 1;  // Return 1 to indicate success
-}
-
-// Function to close the socket
-void closeSocket()
-{
-    if (sockfd >= 0)
-    {
-        close(sockfd); // Invalidate socket
-        sockfd = -1;
-        LOGI("Socket closed");
-    }
 }
 
 // Function to set up the socket connection to the server and validate the password
@@ -222,7 +210,7 @@ void initializeSensorManager(JNIEnv* env, jobject obj)
         {
             sensorManager = ASensorManager_getInstance();  // Fallback for older devices.
         }
-        sensorEventQueue = ASensorManager_createEventQueue(sensorManager, ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS), 0, get_sensor_data, nullptr);
+        sensorEventQueue = ASensorManager_createEventQueue(sensorManager, ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS), 0, handleSensorEvents, nullptr);
     }
 }
 
@@ -249,7 +237,7 @@ JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_stopAccelerom
     {
         ASensorEventQueue_disableSensor(sensorEventQueue, accelerometer);
     }
-    closeSocket(); // Consistently stop the socket after stopping the accelerometer
+    close(sockfd); // Consistently stop the socket after stopping the accelerometer
 }
 
 // Native method to start gyroscope
@@ -274,7 +262,7 @@ JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_stopGyroscope
     {
         ASensorEventQueue_disableSensor(sensorEventQueue, gyroscope);
     }
-    closeSocket(); // Consistently stop the socket after stopping the gyroscope
+    close(sockfd); // Consistently stop the socket after stopping the gyroscope
 }
 
 // Native method to start magnetometer
@@ -299,5 +287,5 @@ JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_stopMagnetome
     {
         ASensorEventQueue_disableSensor(sensorEventQueue, magnetometer);
     }
-    closeSocket(); // Consistently stop the socket after stopping the magnetometer
+    close(sockfd); // Consistently stop the socket after stopping the magnetometer
 }

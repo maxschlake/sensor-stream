@@ -2,6 +2,8 @@ package com.example.javainterface;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Button;
@@ -17,14 +19,8 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("getSensorData");
     }
 
-    // Other variable instances
-    private float accX, accY, accZ;
-    private float gyroX, gyroY, gyroZ;
-    private float magX, magY, magZ;
-
     // Native methods
     public native boolean connectToServerAndValidatePassword(String password); // For server connection
-    public native void sendDataToServer(String sensorType, float x, float y, float z);
     public native void startSending(boolean validated);
 
     public native void startAccelerometer(); // For accelerometer
@@ -45,9 +41,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Declare a handler to stop the sensor after a fixed period
     private Handler handler = new Handler();
-
-    // Flag to indicate if the server is ready
-    private boolean isServerReady = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,12 +83,25 @@ public class MainActivity extends AppCompatActivity {
     // Prompt the user if they want to send data to the server
     private void promptForDataTransmission()
     {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Send sensor data");
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        // Create a TextView for the title and set its properties
+        TextView title = new TextView(this);
+        title.setText(getString(R.string.enter_seconds));
+        title.setPadding(10, 50, 0, 0);
+        title.setTextSize(20);
+        title.setTextColor(getResources().getColor(android.R.color.black));
+
+        // Set up the custom title
+        builder.setCustomTitle(title);
 
         // Set up the input (how many seconds of data to send)
-        final EditText input = new EditText(this);
-        input.setHint("Enter number of seconds");
+        EditText input = new EditText(this);
+        input.setHint("Seconds");
+
+        // Restrict input to numbers only
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+
         builder.setView(input);
 
         // Set up the buttons
@@ -119,31 +125,27 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // Function to collect the data from all sensors
-    private void sendStoredDataToServer()
-    {
-        // Check if the server is ready
-        if (isServerReady)
-        {
-            sendDataToServer("Acc", accX, accY, accZ);
-            sendDataToServer("Gyro", gyroX, gyroY, gyroZ);
-            sendDataToServer("Mag", magX, magY, magZ);
-        }
-        else
-        {
-            Toast.makeText(MainActivity.this, "Server is not ready", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     // Prompt the user to enter the password before proceeding with data transmission
     private void promptForPassword(int seconds)
     {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter password");
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        // Create a TextView for the title and set its properties
+        TextView title = new TextView(this);
+        title.setText(getString(R.string.enter_password));
+        title.setPadding(10, 50, 0, 0);
+        title.setTextSize(20);
+        title.setTextColor(getResources().getColor(android.R.color.black));
+
+        // Set up the custom title
+        builder.setCustomTitle(title);
 
         // Set up the input (password)
-        final EditText passwordInput = new EditText(this);
+        EditText passwordInput = new EditText(this);
         passwordInput.setHint("Password");
+
+        // Set input type to hide text input with '*' (password style)
+        passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         builder.setView(passwordInput);
 
         // Set up the buttons
@@ -165,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                             startSending(true); // Send data
 
                             // Stop sensor collection after 'seconds' seconds
-                            handler.postDelayed(this::stopAllSensors, seconds * 1000);
+                            handler.postDelayed(() -> stopAllSensors(), seconds * 1000);
                         });
                     } else {
                         runOnUiThread(() ->
@@ -175,15 +177,6 @@ public class MainActivity extends AppCompatActivity {
                         });
                     }
                 }).start();
-            }
-
-            // Method to stop all sensors
-            private void stopAllSensors()
-            {
-                stopAccelerometer();
-                stopGyroscope();
-                stopMagnetometer();
-                Toast.makeText(MainActivity.this, "Data collection stopped", Toast.LENGTH_SHORT).show();
             }
         });
         builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener()
@@ -200,10 +193,6 @@ public class MainActivity extends AppCompatActivity {
     // Method to update the accelerometer data
     public void updateAccelerometerData(float x, float y, float z)
     {
-        accX = x;
-        accY = y;
-        accZ = z;
-
         runOnUiThread(() ->
         {
             xAccTextView.setText(String.format("xAcc: %.6f", x));
@@ -215,10 +204,6 @@ public class MainActivity extends AppCompatActivity {
     // Method to update the gyroscope data
     public void updateGyroscopeData(float x, float y, float z)
     {
-        gyroX = x;
-        gyroY = y;
-        gyroZ = z;
-
         runOnUiThread(() ->
         {
             xGyroTextView.setText(String.format("xGyro: %.6f", x));
@@ -230,10 +215,6 @@ public class MainActivity extends AppCompatActivity {
     // Method to update the gyroscope data
     public void updateMagnetometerData(float x, float y, float z)
     {
-            magX = x;
-            magY = y;
-            magZ = z;
-
             runOnUiThread(() ->
             {
                 xMagTextView.setText(String.format("xMag: %.6f", x));
@@ -242,11 +223,19 @@ public class MainActivity extends AppCompatActivity {
             });
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    // Method to stop all sensors
+    private void stopAllSensors()
+    {
         stopAccelerometer();
         stopGyroscope();
         stopMagnetometer();
+        Toast.makeText(MainActivity.this, "Data collection stopped", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        stopAllSensors();
     }
 }

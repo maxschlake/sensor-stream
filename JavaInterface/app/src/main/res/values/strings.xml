@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">JavaInterface</string>
+    <string name="app_name">Sensor Stream</string>
+    <string name="enter_seconds">Enter duration</string>
+    <string name="enter_password">Enter password</string>
 </resources>
