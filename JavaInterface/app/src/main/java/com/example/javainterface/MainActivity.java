@@ -13,6 +13,10 @@ import android.widget.EditText;
 import android.content.DialogInterface;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+
 public class MainActivity extends AppCompatActivity {
     // Used to load the 'getSensorData' library on application startup
     static {
@@ -167,7 +171,11 @@ public class MainActivity extends AppCompatActivity {
                             startSending(true); // Send data
 
                             // Stop sensor collection after 'seconds' seconds
-                            handler.postDelayed(() -> stopAllSensors(), seconds * 1000);
+                            handler.postDelayed(() ->
+                            {
+                                startSending(false);
+                                Toast.makeText(MainActivity.this, "Data transmission ended", Toast.LENGTH_SHORT).show();
+                            }, seconds * 1000);
                         });
                     } else {
                         runOnUiThread(() ->

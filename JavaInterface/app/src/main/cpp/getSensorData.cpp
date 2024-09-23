@@ -74,6 +74,10 @@ extern "C"
 JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_startSending(JNIEnv* env, jobject obj, jboolean validated)
 {
     startSending = validated; // Update the global isServerReady flag
+    if (!startSending)
+    {
+        close(sockfd);
+    }
 }
 
 static int handleSensorEvents(int fd, int events, void* data)
@@ -131,8 +135,7 @@ static int handleSensorEvents(int fd, int events, void* data)
 
 // Function to set up the socket connection to the server and validate the password
 extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_example_javainterface_MainActivity_connectToServerAndValidatePassword(JNIEnv* env, jobject obj, jstring jPassword)
+JNIEXPORT jboolean JNICALL Java_com_example_javainterface_MainActivity_connectToServerAndValidatePassword(JNIEnv* env, jobject obj, jstring jPassword)
 {
     const char* password = env->GetStringUTFChars(jPassword, nullptr);
     struct sockaddr_in server_addr;
