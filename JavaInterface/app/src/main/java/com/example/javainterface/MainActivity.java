@@ -1,10 +1,14 @@
 package com.example.javainterface;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Button;
 import android.os.Handler;
@@ -113,10 +117,30 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
-                String seconds = input.getText().toString();
+                String seconds = input.getText().toString().trim();
 
-                // After seconds are entered, ask for the password
-                promptForPassword(Integer.parseInt(seconds));
+                // Hide the keyboard after the user input
+                hideKeyboard(input);
+
+                // Ensure the input is not empty
+                if (seconds.isEmpty())
+                {
+                    Toast.makeText(MainActivity.this, "Please enter a valid number of seconds", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                else
+                {
+                    try
+                    {
+                        int secondsValue = Integer.parseInt(seconds);
+                        // After seconds are entered, ask for the password
+                        promptForPassword(secondsValue);
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        Toast.makeText(MainActivity.this, "Invalid input - please enter a valid number", Toast.LENGTH_SHORT).show();
+                    }
+                }
             }
         });
         builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
@@ -159,6 +183,9 @@ public class MainActivity extends AppCompatActivity {
             {
                 String password = passwordInput.getText().toString();
 
+                // Hide the keyboard after the user input
+                hideKeyboard(passwordInput);
+
                 // Run the network operation in a background thread
                 new Thread(() ->
                 {
@@ -196,6 +223,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         builder.show();
+    }
+
+    private void hideKeyboard(View view)
+    {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     // Method to update the accelerometer data
