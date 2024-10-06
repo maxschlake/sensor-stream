@@ -2,12 +2,14 @@
   <img src="./JavaInterface/app/src/main/res/drawable/app_logo.png" alt="Sensor Stream Logo" style="width:400px;"/>
 </div>
 
-# Sensor Stream - A native Android sensor data collector using NDK (C++) [Privacy Policy](https://maxschlake.github.io/sensor-stream/privacy-policy)
+# Sensor Stream - A native Android sensor data collector using NDK (C++)
 
 ## Overview
 The project involves building a native Android application that collects sensor data (e.g., Accelerometer, Gyroscope, Magnetometer) from an Android smartphone using C++ with the Android Native Development Kit (NDK). The data is streamed to an external system over a network connection for further analysis. <br/>
 
-**Sensor Stream** is designed to minimize Java/Kotlin dependencies, with the majority of the functionalities (sensor access, data processing, and network communication) implemented natively in C++. It is a follow-up project for my Master thesis paper about Human Activity Recognition (HAR), where said sensor data is fed into a modified transformer model to identify human movements (like running, jumping, etc.). Upon publication of that paper, I will also make the code for the transformer available here.
+**Sensor Stream** is designed to minimize Java/Kotlin dependencies, with the majority of the functionalities (sensor access, data processing, and network communication) implemented natively in C++. It is a follow-up project for my Master thesis paper about Human Activity Recognition (HAR), where said sensor data is fed into a modified transformer model to identify human movements (like running, jumping, etc.). Upon publication of that paper, I will also make the code for the transformer available here. <br/>
+
+[Privacy Policy](https://maxschlake.github.io/sensor-stream/privacy-policy)
 
 ## Highlights
 - Native C++ development core functionality, including data collection and networking
