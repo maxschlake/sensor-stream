@@ -2,7 +2,7 @@
   <img src="./JavaInterface/app/src/main/res/drawable/app_logo.png" alt="Sensor Stream Logo" style="width:400px;"/>
 </div>
 
-# Sensor Stream - A native Android sensor data collector using NDK (C++)
+# Sensor Stream - A native Android sensor data collector using NDK (C++) [Privacy Policy](https://maxschlake.github.io/sensor-stream/privacy-policy)
 
 ## Overview
 The project involves building a native Android application that collects sensor data (e.g., Accelerometer, Gyroscope, Magnetometer) from an Android smartphone using C++ with the Android Native Development Kit (NDK). The data is streamed to an external system over a network connection for further analysis. <br/>
