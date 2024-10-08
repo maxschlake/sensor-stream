@@ -21,11 +21,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import android.content.Intent;
+import android.net.VpnService;  // Import VpnService
+
 public class MainActivity extends AppCompatActivity {
     // Used to load the 'getSensorData' library on application startup
     static {
         System.loadLibrary("getSensorData");
     }
+    private static final int VPN_REQUEST_CODE = 100;
 
     // Native methods
     public native boolean connectToServerAndValidatePassword(String password); // For server connection
@@ -78,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v)
             {
-                promptForDataTransmission(); // Start the process when the button is clicked
+                startVpn();
             }
         });
 
@@ -86,6 +90,39 @@ public class MainActivity extends AppCompatActivity {
         startAccelerometer();
         startGyroscope();
         startMagnetometer();
+    }
+
+    // VPN-related method
+    private void startVpn()
+    {
+        Intent vpnIntent = VpnService.prepare(MainActivity.this);
+        if (vpnIntent != null)
+        {
+            startActivityForResult(vpnIntent, VPN_REQUEST_CODE);
+        }
+        else
+        {
+            onActivityResult(VPN_REQUEST_CODE, RESULT_OK, null);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if (requestCode == VPN_REQUEST_CODE && resultCode == RESULT_OK)
+        {
+            // VPN is ready, now start the VPN service
+            Intent intent = new Intent(MainActivity.this, MyVpnService.class);
+            startService(intent);
+
+            // Proceed to password validation and data transmission
+            promptForDataTransmission();
+        }
+        else if (resultCode != RESULT_OK)
+        {
+            // Notify the user if VPN connection fails
+            Toast.makeText(MainActivity.this, "VPN permission denied", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // Prompt the user if they want to send data to the server

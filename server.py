@@ -62,8 +62,9 @@ def log_data_to_csv(data):
             print(f"Unexpected data format or unrecognized sensor_type: {line}")
 
 # Set up command line argument parsing
+# default=socket.gethostbyname(socket.gethostname())
 parser = argparse.ArgumentParser(description="Sensor Stream Server")
-parser.add_argument('--ip', type=str, default=socket.gethostbyname(socket.gethostname()),
+parser.add_argument('--ip', type=str, default='10.0.0.2',
                     help='IP address to listen on (default: local IPv4 address)')
 parser.add_argument('--port', type=int, default=8080, help='Port number to listen on (default: 8080)')
 args = parser.parse_args()
@@ -75,6 +76,7 @@ PW = getpass.getpass("Please create a password for the session: ")
 def start_server():
     # Create a TCP/IP socket 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     server_socket.bind((IP, PORT)) # Bind to all interfaces and port 8080
     server_socket.listen(1)
     print("Waiting for connection...")
