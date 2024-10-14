@@ -11,8 +11,8 @@
 #include <fcntl.h>
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "sensor-native", __VA_ARGS__))
-#define SERVER_IP "192.168.1.15"
-#define SERVER_PORT 8080
+static char SERVER_IP[INET_ADDRSTRLEN] = "127.0.0.1"; // Default
+static int SERVER_PORT = 8080; // Default
 
 static ASensorManager* sensorManager;
 static const ASensor* accelerometer;
@@ -131,6 +131,22 @@ static int handleSensorEvents(int fd, int events, void* data)
     }
 
     return 1;  // Return 1 to indicate success
+}
+
+// Function to obtain user inputs for the server IP address and port
+extern "C"
+JNIEXPORT void JNICALL Java_com_example_javainterface_MainActivity_setServerIpAndPort(JNIEnv* env, jobject obj, jstring jIpAddress, jint jPort)
+{
+    const char* ipAddress = env->GetStringUTFChars(jIpAddress, nullptr);
+
+    // Update the globalIP address and port
+    strncpy(SERVER_IP, ipAddress, INET_ADDRSTRLEN);
+    SERVER_PORT = jPort;
+
+    env->ReleaseStringUTFChars(jIpAddress, ipAddress);
+
+    LOGI("Server IP address set to %s", SERVER_IP);
+    LOGI("Server port set to %d", SERVER_PORT);
 }
 
 // Function to set up the socket connection to the server and validate the password

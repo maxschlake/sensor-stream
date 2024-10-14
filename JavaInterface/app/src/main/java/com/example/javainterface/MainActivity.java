@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Button;
 import android.os.Handler;
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Native methods
+    public native void setServerIpAndPort(String ipAddress, int port);
     public native boolean connectToServerAndValidatePassword(String password); // For server connection
     public native void startSending(boolean validated);
 
@@ -88,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         startMagnetometer();
     }
 
-    // Prompt the user if they want to send data to the server
+    // Prompt the user for seconds of data, then IP address & port, then password
     private void promptForDataTransmission()
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -113,7 +115,8 @@ public class MainActivity extends AppCompatActivity {
         builder.setView(input);
 
         // Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+        {
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
@@ -134,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                     {
                         int secondsValue = Integer.parseInt(seconds);
                         // After seconds are entered, ask for the password
-                        promptForPassword(secondsValue);
+                        promptForIpAndPort(secondsValue);
                     }
                     catch (NumberFormatException e)
                     {
@@ -143,13 +146,75 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener()
+        {
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
                 dialog.cancel();
             }
         });
+        builder.show();
+    }
+
+    // Prompt the user to enter the server's IP address and port number
+    private void promptForIpAndPort(int seconds)
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        // Title for the IP/Port dialog
+        TextView title = new TextView(MainActivity.this);
+        title.setText(getString(R.string.enter_ip_and_port));
+        title.setPadding(10, 50, 0, 0);
+        title.setTextSize(20);
+        title.setTextColor(getResources().getColor(android.R.color.black));
+        builder.setCustomTitle(title);
+
+        // Set up the input (IP address and port number)
+        EditText ipInput = new EditText(MainActivity.this);
+        ipInput.setHint("IP address");
+        ipInput.setInputType(InputType.TYPE_CLASS_TEXT);
+
+        EditText portInput = new EditText(MainActivity.this);
+        portInput.setHint("Port number");
+        portInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        // Arrange inputs vertically in a linear layout
+        LinearLayout layout = new LinearLayout(MainActivity.this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.addView(ipInput);
+        layout.addView(portInput);
+        builder.setView(layout);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                String ipAddress = ipInput.getText().toString().trim();
+                String port = portInput.getText().toString().trim();
+                hideKeyboard(ipInput);
+
+                if (!ipAddress.isEmpty() && !port.isEmpty())
+                {
+                    try
+                    {
+                        int portNumber = Integer.parseInt(port);
+                        setServerIpAndPort(ipAddress, portNumber);
+                        promptForPassword(seconds);
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        Toast.makeText(MainActivity.this, "Invalid input - please enter a valid port number", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else
+                {
+                    Toast.makeText(MainActivity.this, "Invalid input - please enter a valid IP address and port number", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        builder.setNegativeButton("CANCEL", (dialog, which) -> dialog.cancel());
         builder.show();
     }
 
@@ -164,8 +229,6 @@ public class MainActivity extends AppCompatActivity {
         title.setPadding(10, 50, 0, 0);
         title.setTextSize(20);
         title.setTextColor(getResources().getColor(android.R.color.black));
-
-        // Set up the custom title
         builder.setCustomTitle(title);
 
         // Set up the input (password)
@@ -177,7 +240,8 @@ public class MainActivity extends AppCompatActivity {
         builder.setView(passwordInput);
 
         // Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+        {
             @Override
             public void onClick(DialogInterface dialog, int which)
             {
@@ -190,7 +254,8 @@ public class MainActivity extends AppCompatActivity {
                 new Thread(() ->
                 {
                     // Try to connect to the server and validate the password
-                    if (connectToServerAndValidatePassword(password)) {
+                    if (connectToServerAndValidatePassword(password))
+                    {
                         // Update the UI on the main thread
                         runOnUiThread(() ->
                         {

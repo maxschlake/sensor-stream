@@ -77,7 +77,7 @@ def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((IP, PORT)) # Bind to all interfaces and port 8080
     server_socket.listen(1)
-    print("Waiting for connection...")
+    print(f"Waiting for connection...\n\n Server information:\n IP address: {IP}\n Port number: {PORT}")
 
     try:
         while True:
