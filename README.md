@@ -20,7 +20,7 @@ The project involves building a native Android application that collects sensor 
 
 ## How to use Sensor Stream
 ### 1.) Download and install the Sensor Stream app
-The app is available for different [Application Binary Interfaces (ABIs)](https://developer.android.com/ndk/guides/abis) and runs on *API Level 26* / *Android 8.0 Orio* upwards. You can download the Android Package Kit (APK) corresponding to your device/ABI in the [release](https://github.com/maxschlake/sensor-stream/tree/main/JavaInterface/app/release) directory. Follow the instructions to install the application. <br/> 
+The app is available for different [Application Binary Interfaces (ABIs)](https://developer.android.com/ndk/guides/abis) and runs on **API Level 26** / **Android 8.0 Orio** upwards. You can download the Android Package Kit (APK) corresponding to your device/ABI in the [release](https://github.com/maxschlake/sensor-stream/tree/main/JavaInterface/app/release) directory. Follow the instructions to install the application. <br/> 
 **Note**: Since the app is not offered in any official online store (like Google Play Store), you might have to adjust your security settings to allow app installs from unknown sources before proceeding with the installation.
 ### 2.) Open the Sensor Stream app
 The app immediately displays live data from your phone's accelerometer, gyroscope and magnetometer.
