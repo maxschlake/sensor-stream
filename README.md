@@ -21,11 +21,11 @@ The project involves building a native Android application that collects sensor 
 ## How to use Sensor Stream
 ### 1.) Download and install the Sensor Stream app
 The app is available for different [Application Binary Interfaces (ABIs)](https://developer.android.com/ndk/guides/abis) and runs on **API Level 26** / **Android 8.0 Orio** upwards. You can download the Android Package Kit (APK) corresponding to your device/ABI in the [release](https://github.com/maxschlake/sensor-stream/tree/main/JavaInterface/app/release) directory. Follow the instructions to install the application. <br/> 
-**Note**: Since the app is not offered in any official online store (like Google Play Store), you might have to adjust your security settings to allow app installs from unknown sources before proceeding with the installation.
+**Note**: Since the app is not offered in any official online store (like Google Play), you might have to adjust your security settings to allow app installs from unknown sources before proceeding with the installation.
 ### 2.) Open the Sensor Stream app
 The app immediately displays live data from your phone's accelerometer, gyroscope and magnetometer.
 ### 3.) Start the server
-After downloading the project, open the command line, navigate to the project folder, and run `python server.py`. The script will establish a TCP socket and lets you set up a new password for every session. <br/>
+After downloading the project, open the command line, navigate to the project folder, and run `python server.py`. The script establishes a TCP socket and lets you set up a new password for every session. <br/>
 By default, it uses your local IPv4 address and port 8080. However, both IP address (for example: '192.168.1.2') and port number (for example: 8081) can also be entered manually, as shown below: <br/>
 ```
 python server.py --ip '192.168.1.2' --port 8081
